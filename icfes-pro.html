@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ICFES Countdown Pro</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --card-light: #334155;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-2: #818cf8;
+            --success: #4ade80;
+            --danger: #fb7185;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            color: var(--text);
+
+            background:
+                radial-gradient(circle at top left, #312e81, transparent 35%),
+                radial-gradient(circle at bottom right, #075985, transparent 35%),
+                var(--bg);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+
+            backdrop-filter: blur(15px);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .countdown-card {
+            text-align: center;
+        }
+
+        .countdown {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+
+            margin: 30px 0;
+        }
+
+        .time-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+
+            padding: 20px 10px;
+        }
+
+        .number {
+            display: block;
+            font-size: 3rem;
+            font-weight: bold;
+
+            background: linear-gradient(
+                90deg,
+                var(--accent),
+                var(--accent-2)
+            );
+
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .progress-container {
+            margin-top: 25px;
+        }
+
+        .progress-bar {
+            height: 12px;
+            width: 100%;
+
+            background: rgba(255, 255, 255, 0.08);
+
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+
+            background: linear-gradient(
+                90deg,
+                var(--accent),
+                var(--accent-2)
+            );
+
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .settings h2,
+        .score-section h2 {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+
+            border-radius: 12px;
+            border: 1px solid var(--border);
+
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+
+            font-size: 1rem;
+
+            margin-bottom: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+
+            border: none;
+            border-radius: 12px;
+
+            background: linear-gradient(
+                90deg,
+                var(--accent),
+                var(--accent-2)
+            );
+
+            color: white;
+
+            font-size: 1rem;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: transform 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .score-section {
+            margin-top: 20px;
+        }
+
+        .score-result {
+            margin-top: 15px;
+            padding: 15px;
+
+            border-radius: 12px;
+
+            background: rgba(255, 255, 255, 0.05);
+
+            text-align: center;
+
+            min-height: 50px;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .today {
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .finished {
+            color: var(--success);
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 750px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .countdown {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            header h1 {
+                font-size: 2.2rem;
+            }
+
+            .number {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>ICFES Countdown 🚀</h1>
+        <p>El camino hacia los resultados.</p>
+    </header>
+
+    <div class="grid">
+
+        <main>
+
+            <section class="card countdown-card">
+
+                <h2>Tiempo restante</h2>
+
+                <div class="countdown">
+
+                    <div class="time-box">
+                        <span class="number" id="dias">--</span>
+                        <span class="label">Días</span>
+                    </div>
+
+                    <div class="time-box">
+                        <span class="number" id="horas">--</span>
+                        <span class="label">Horas</span>
+                    </div>
+
+                    <div class="time-box">
+                        <span class="number" id="minutos">--</span>
+                        <span class="label">Minutos</span>
+                    </div>
+
+                    <div class="time-box">
+                        <span class="number" id="segundos">--</span>
+                        <span class="label">Segundos</span>
+                    </div>
+
+                </div>
+
+                <div class="progress-container">
+
+                    <div class="progress-bar">
+                        <div
+                            class="progress"
+                            id="barraProgreso">
+                        </div>
+                    </div>
+
+                    <p
+                        class="progress-text"
+                        id="progresoTexto">
+                        Calculando progreso...
+                    </p>
+
+                </div>
+
+                <p
+                    class="message"
+                    id="mensaje">
+                </p>
+
+                <p
+                    class="today"
+                    id="fechaActual">
+                </p>
+
+            </section>
+
+            <section class="card score-section">
+
+                <h2>🎯 ¿Y tu puntaje?</h2>
+
+                <label for="puntaje">
+                    Introduce tu resultado ICFES
+                </label>
+
+                <input
+                    type="number"
+                    id="puntaje"
+                    min="0"
+                    max="500"
+                    placeholder="Ej: 450"
+                >
+
+                <button id="analizar">
+                    Analizar resultado
+                </button>
+
+                <div
+                    class="score-result"
+                    id="resultadoPuntaje">
+                </div>
+
+            </section>
+
+        </main>
+
+        <aside class="card settings">
+
+            <h2>⚙️ Configuración</h2>
+
+            <label for="fechaInicio">
+                Fecha de inicio
+            </label>
+
+            <input
+                type="date"
+                id="fechaInicio"
+                value="2026-07-26"
+            >
+
+            <label for="fechaResultados">
+                Fecha de resultados
+            </label>
+
+            <input
+                type="date"
+                id="fechaResultados"
+                value="2026-09-25"
+            >
+
+            <button id="actualizar">
+                Actualizar fecha
+            </button>
+
+        </aside>
+
+    </div>
+
+    <footer>
+        ICFES Countdown Pro · Proyecto de aprendizaje
+    </footer>
+
+</div>
+
+
+<script>
+
+    // ==========================================
+    // 1. ELEMENTOS DEL HTML
+    // ==========================================
+
+    const diasElemento =
+        document.getElementById("dias");
+
+    const horasElemento =
+        document.getElementById("horas");
+
+    const minutosElemento =
+        document.getElementById("minutos");
+
+    const segundosElemento =
+        document.getElementById("segundos");
+
+    const mensajeElemento =
+        document.getElementById("mensaje");
+
+    const fechaActualElemento =
+        document.getElementById("fechaActual");
+
+    const barraProgreso =
+        document.getElementById("barraProgreso");
+
+    const progresoTexto =
+        document.getElementById("progresoTexto");
+
+    const fechaInicioElemento =
+        document.getElementById("fechaInicio");
+
+    const fechaResultadosElemento =
+        document.getElementById("fechaResultados");
+
+    const actualizarBoton =
+        document.getElementById("actualizar");
+
+    const puntajeElemento =
+        document.getElementById("puntaje");
+
+    const analizarBoton =
+        document.getElementById("analizar");
+
+    const resultadoPuntaje =
+        document.getElementById("resultadoPuntaje");
+
+
+    // ==========================================
+    // 2. FUNCIÓN PARA CREAR FECHAS LOCALES
+    // ==========================================
+
+    function crearFechaLocal(fechaTexto) {
+
+        const partes = fechaTexto.split("-");
+
+        const año = Number(partes[0]);
+        const mes = Number(partes[1]) - 1;
+        const dia = Number(partes[2]);
+
+        return new Date(
+            año,
+            mes,
+            dia
+        );
+    }
+
+
+    // ==========================================
+    // 3. FUNCIÓN PRINCIPAL DEL COUNTDOWN
+    // ==========================================
+
+    function actualizarCountdown() {
+
+        const ahora = new Date();
+
+        const fechaInicio =
+            crearFechaLocal(
+                fechaInicioElemento.value
+            );
+
+        const fechaResultados =
+            crearFechaLocal(
+                fechaResultadosElemento.value
+            );
+
+        const diferencia =
+            fechaResultados - ahora;
+
+
+        // ------------------------------------------
+        // SI YA LLEGÓ EL DÍA
+        // ------------------------------------------
+
+        if (diferencia <= 0) {
+
+            diasElemento.textContent = "0";
+            horasElemento.textContent = "0";
+            minutosElemento.textContent = "0";
+            segundosElemento.textContent = "0";
+
+            mensajeElemento.textContent =
+                "🎉 ¡Llegó el día de los resultados!";
+
+            mensajeElemento.className =
+                "message finished";
+
+            barraProgreso.style.width = "100%";
+
+            progresoTexto.textContent =
+                "Proceso completado: 100%";
+
+            return;
+        }
+
+
+        // ------------------------------------------
+        // CONVERSIONES DE TIEMPO
+        // ------------------------------------------
+
+        const segundosTotales =
+            Math.floor(diferencia / 1000);
+
+        const dias =
+            Math.floor(
+                segundosTotales / 86400
+            );
+
+        const horas =
+            Math.floor(
+                (segundosTotales % 86400) / 3600
+            );
+
+        const minutos =
+            Math.floor(
+                (segundosTotales % 3600) / 60
+            );
+
+        const segundos =
+            segundosTotales % 60;
+
+
+        // ------------------------------------------
+        // MOSTRAR COUNTDOWN
+        // ------------------------------------------
+
+        diasElemento.textContent = dias;
+
+        horasElemento.textContent = horas;
+
+        minutosElemento.textContent = minutos;
+
+        segundosElemento.textContent = segundos;
+
+
+        mensajeElemento.textContent =
+            "⏳ Cada segundo cuenta.";
+
+        mensajeElemento.className =
+            "message";
+
+
+        // ------------------------------------------
+        // FECHA ACTUAL
+        // ------------------------------------------
+
+        fechaActualElemento.textContent =
+            "Hoy: " +
+            ahora.toLocaleDateString(
+                "es-CO",
+                {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                }
+            );
+
+
+        // ------------------------------------------
+        // PROGRESO
+        // ------------------------------------------
+
+        const duracionTotal =
+            fechaResultados - fechaInicio;
+
+        const tiempoTranscurrido =
+            ahora - fechaInicio;
+
+        let porcentaje =
+            (tiempoTranscurrido /
+                duracionTotal) * 100;
+
+        porcentaje =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    porcentaje
+                )
+            );
+
+        barraProgreso.style.width =
+            porcentaje + "%";
+
+        progresoTexto.textContent =
+            "Has recorrido " +
+            porcentaje.toFixed(2) +
+            "% del camino.";
+    }
+
+
+    // ==========================================
+    // 4. ACTUALIZAR FECHAS
+    // ==========================================
+
+    actualizarBoton.addEventListener(
+        "click",
+        function() {
+
+            actualizarCountdown();
+
+        }
+    );
+
+
+    // ==========================================
+    // 5. ANALIZADOR DE PUNTAJE
+    // ==========================================
+
+    analizarBoton.addEventListener(
+        "click",
+        function() {
+
+            const puntaje =
+                Number(
+                    puntajeElemento.value
+                );
+
+
+            if (
+                puntaje < 0 ||
+                puntaje > 500 ||
+                puntajeElemento.value === ""
+            ) {
+
+                resultadoPuntaje.textContent =
+                    "Introduce un puntaje válido entre 0 y 500.";
+
+                resultadoPuntaje.className =
+                    "score-result error";
+
+                return;
+            }
+
+
+            let mensaje;
+
+
+            if (puntaje >= 450) {
+
+                mensaje =
+                    "🔥 ¡Resultado extraordinario!";
+
+            } else if (puntaje >= 400) {
+
+                mensaje =
+                    "🚀 ¡Excelente resultado!";
+
+            } else if (puntaje >= 350) {
+
+                mensaje =
+                    "💪 ¡Muy buen resultado!";
+
+            } else if (puntaje >= 300) {
+
+                mensaje =
+                    "👏 Buen resultado. Hay mucho que construir.";
+
+            } else {
+
+                mensaje =
+                    "❤️ Un resultado no define todo tu potencial.";
+
+            }
+
+
+            resultadoPuntaje.textContent =
+                mensaje;
+
+            resultadoPuntaje.className =
+                "score-result";
+        }
+    );
+
+
+    // ==========================================
+    // 6. ACTUALIZACIÓN AUTOMÁTICA
+    // ==========================================
+
+    actualizarCountdown();
+
+
+    setInterval(
+        actualizarCountdown,
+        1000
+    );
+
+</script>
+
+</body>
+</html>
